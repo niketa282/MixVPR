@@ -79,10 +79,10 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),  # original MixVPR default
             'crop':        T.RandomResizedCrop(image_size, scale=(0.7, 1.0), ratio=(0.9, 1.1),
                                                interpolation=T.InterpolationMode.BILINEAR),
-            'perspective': T.RandomPerspective(distortion_scale=0.2, p=0.5),  # decide p (0.5 or 1.0) and state it in methods
-            'rotate':      T.RandomRotation(degrees=10),
-            'translate':   T.RandomAffine(degrees=0, translate=(0.05, 0.05)),
-            'shear':       T.RandomAffine(degrees=0, shear=(-5, 5, -5, 5)),
+            'perspective': T.RandomPerspective(distortion_scale=0.2, p=1.0, interpolation=T.InterpolationMode.BILINEAR),  # decide p (0.5 or 1.0) and state it in methods
+            'rotate':      T.RandomRotation(degrees=10, interpolation=T.InterpolationMode.BILINEAR),
+            'translate':   T.RandomAffine(degrees=0, translate=(0.05, 0.05), interpolation=T.InterpolationMode.BILINEAR),
+            'shear':       T.RandomAffine(degrees=0, shear=(-5, 5, -5, 5), interpolation=T.InterpolationMode.BILINEAR),
         }
         if geo_aug not in GEO_AUGS:
             raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
