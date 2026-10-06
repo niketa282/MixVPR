@@ -3,6 +3,7 @@ import torch
 from pytorch_lightning.callbacks import Callback, ModelCheckpoint
 from torch.optim import lr_scheduler, optimizer
 import utils
+import argparse
 
 from dataloaders.GSVCitiesDataloader import GSVCitiesDataModule
 from models import helper
@@ -224,7 +225,13 @@ class VPRModel(pl.LightningModule):
             
             
 if __name__ == '__main__':
-    pl.utilities.seed.seed_everything(seed=190223, workers=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--geo_aug', default='none',
+                        choices=['none', 'randaugment', 'crop', 'perspective',
+                                 'rotate', 'translate', 'shear'])
+    args = parser.parse_args()
+
+    pl.seed_everything(seed=190223, workers=True) # Changed
         
     datamodule = GSVCitiesDataModule(
         batch_size=120,
@@ -233,9 +240,10 @@ if __name__ == '__main__':
         shuffle_all=False, # shuffle all images or keep shuffling in-city only
         random_sample_from_each_place=True,
         image_size=(320, 320),
-        num_workers=28,
+        num_workers=8,     # CHANGED: match --cpus-per-task in Slurm
         show_data_stats=True,
-        val_set_names=['pitts30k_val', 'pitts30k_test', 'msls_val'], # pitts30k_val, pitts30k_test, msls_val
+        val_set_names=['pitts30k_val'],     # CHANGED: validation only, no test sets
+        geo_aug=args.geo_aug,               # NEW
     )
     
     # examples of backbones
@@ -303,11 +311,12 @@ if __name__ == '__main__':
     # we instanciate a trainer
     trainer = pl.Trainer(
         accelerator='gpu', devices=[0],
-        default_root_dir=f'./LOGS/{model.encoder_arch}', # Tensorflow can be used to viz 
+        default_root_dir=f'./LOGS/rgb_{args.geo_aug}',   # CHANGED: one folder per condition 
 
         num_sanity_val_steps=0, # runs a validation step before stating training
         precision=16, # we use half precision to reduce  memory usage
-        max_epochs=80,
+        max_epochs=1,             # TEST — change back to 80
+        limit_train_batches=50,   # TEST — remove afterwards
         check_val_every_n_epoch=1, # run validation every epoch
         callbacks=[checkpoint_cb],# we only run the checkpointing callback (you can add more)
         reload_dataloaders_every_n_epochs=1, # we reload the dataset to shuffle the order

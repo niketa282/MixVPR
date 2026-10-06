@@ -4,7 +4,7 @@ from torchvision import transforms as T
 
 from dataloaders.GSVCitiesDataset import GSVCitiesDataset
 from . import PittsburgDataset
-from . import MapillaryDataset
+#from . import MapillaryDataset
 
 from prettytable import PrettyTable
 
@@ -54,7 +54,8 @@ class GSVCitiesDataModule(pl.LightningDataModule):
                  mean_std=IMAGENET_MEAN_STD,
                  batch_sampler=None,
                  random_sample_from_each_place=True,
-                 val_set_names=['pitts30k_val', 'msls_val']
+                 val_set_names=['pitts30k_val'],   # CHANGED (3): validate on Pitts30k-val only
+                 geo_aug='none', 
                  ):
         super().__init__()
         self.batch_size = batch_size
@@ -70,14 +71,27 @@ class GSVCitiesDataModule(pl.LightningDataModule):
         self.std_dataset = mean_std['std']
         self.random_sample_from_each_place = random_sample_from_each_place
         self.val_set_names = val_set_names
+        self.geo_aug = geo_aug  
         self.save_hyperparameters() # save hyperparameter with Pytorch Lightening
 
-        self.train_transform = T.Compose([
-            T.Resize(image_size, interpolation=T.InterpolationMode.BILINEAR),
-            T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),
-            T.ToTensor(),
-            T.Normalize(mean=self.mean_dataset, std=self.std_dataset),
-        ])
+        GEO_AUGS = {
+            'none':        None,
+            'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),  # original MixVPR default
+            'crop':        T.RandomResizedCrop(image_size, scale=(0.7, 1.0), ratio=(0.9, 1.1),
+                                               interpolation=T.InterpolationMode.BILINEAR),
+            'perspective': T.RandomPerspective(distortion_scale=0.2, p=0.5),  # decide p (0.5 or 1.0) and state it in methods
+            'rotate':      T.RandomRotation(degrees=10),
+            'translate':   T.RandomAffine(degrees=0, translate=(0.05, 0.05)),
+            'shear':       T.RandomAffine(degrees=0, shear=(-5, 5, -5, 5)),
+        }
+        if geo_aug not in GEO_AUGS:
+            raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
+ 
+        train_ops = [T.Resize(image_size, interpolation=T.InterpolationMode.BILINEAR)]
+        if GEO_AUGS[geo_aug] is not None:
+            train_ops.append(GEO_AUGS[geo_aug])
+        train_ops += [T.ToTensor(), T.Normalize(mean=self.mean_dataset, std=self.std_dataset)]
+        self.train_transform = T.Compose(train_ops)
 
         self.valid_transform = T.Compose([
             T.Resize(image_size, interpolation=T.InterpolationMode.BILINEAR),
@@ -112,9 +126,9 @@ class GSVCitiesDataModule(pl.LightningDataModule):
                 elif valid_set_name.lower() == 'pitts30k_val':
                     self.val_datasets.append(PittsburgDataset.get_whole_val_set(
                         input_transform=self.valid_transform))
-                elif valid_set_name.lower() == 'msls_val':
-                    self.val_datasets.append(MapillaryDataset.MSLS(
-                        input_transform=self.valid_transform))
+                #elif valid_set_name.lower() == 'msls_val':
+                #    self.val_datasets.append(MapillaryDataset.MSLS(
+                #        input_transform=self.valid_transform))
                 else:
                     print(
                         f'Validation set {valid_set_name} does not exist or has not been implemented yet')
