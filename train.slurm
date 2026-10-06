@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=60:00:00
+#SBATCH --time=16:00:00
 #SBATCH --output=logs/%x_%j.out
 
 source /iridisfs/ixsoftware/conda/miniconda-py3/etc/profile.d/conda.sh
