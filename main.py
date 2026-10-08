@@ -229,10 +229,11 @@ if __name__ == '__main__':
     parser.add_argument('--geo_aug', default='none',
                         choices=['none', 'randaugment', 'crop', 'perspective',
                                  'rotate', 'translate', 'shear'])
+    parser.add_argument('--seed', type=int, default=190223)
     args = parser.parse_args()
 
-    pl.seed_everything(seed=190223, workers=True) # Changed
-        
+    pl.seed_everything(seed=args.seed, workers=True) # Changed
+
     datamodule = GSVCitiesDataModule(
         batch_size=120,
         img_per_place=4,
@@ -311,7 +312,7 @@ if __name__ == '__main__':
     # we instanciate a trainer
     trainer = pl.Trainer(
         accelerator='gpu', devices=[0],
-        default_root_dir=f'./LOGS/rgb_{args.geo_aug}',   # CHANGED: one folder per condition 
+        default_root_dir=f'./LOGS/rgb_{args.geo_aug}_s{args.seed}',   # CHANGED: one folder per condition 
 
         num_sanity_val_steps=0, # runs a validation step before stating training
         precision=16, # we use half precision to reduce  memory usage

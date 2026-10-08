@@ -1,0 +1,155 @@
+% Requires \usepackage{booktabs} in the preamble.
+% Recall@K (%) per test set; brackets: change vs. no augmentation (percentage points); bold: best per column.
+% MixVPR (ResNet-50), GSV-Cities, 50 epochs, seed 190223, best checkpoint on Pitts30k-val R@1.
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on Pitts30k-test (10,000 database images, 6,816 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_pitts30k_test}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & Pitts30k-test & 90.38 & 95.44 & 96.30 \\
+\midrule
+crop & Pitts30k-test & 90.23 {\scriptsize ($-$0.15)} & 95.26 {\scriptsize ($-$0.18)} & 96.45 {\scriptsize (+0.15)} \\
+perspective & Pitts30k-test & \textbf{90.93} {\scriptsize (+0.55)} & \textbf{95.80} {\scriptsize (+0.36)} & \textbf{96.80} {\scriptsize (+0.50)} \\
+rotate & Pitts30k-test & 90.83 {\scriptsize (+0.45)} & 95.44 {\scriptsize (+0.00)} & 96.73 {\scriptsize (+0.43)} \\
+translate & Pitts30k-test & 90.57 {\scriptsize (+0.19)} & 95.13 {\scriptsize ($-$0.31)} & 96.17 {\scriptsize ($-$0.13)} \\
+shear & Pitts30k-test & 90.70 {\scriptsize (+0.32)} & 95.60 {\scriptsize (+0.16)} & 96.52 {\scriptsize (+0.22)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on Nordland (summer database, winter queries) (27,592 database images, 27,592 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_nordland}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & Nordland & 69.55 & 82.21 & 86.36 \\
+\midrule
+crop & Nordland & 74.16 {\scriptsize (+4.61)} & 85.04 {\scriptsize (+2.83)} & 88.75 {\scriptsize (+2.39)} \\
+perspective & Nordland & \textbf{77.34} {\scriptsize (+7.79)} & \textbf{87.28} {\scriptsize (+5.07)} & \textbf{90.47} {\scriptsize (+4.11)} \\
+rotate & Nordland & 70.46 {\scriptsize (+0.91)} & 82.03 {\scriptsize ($-$0.18)} & 86.28 {\scriptsize ($-$0.08)} \\
+translate & Nordland & 73.07 {\scriptsize (+3.52)} & 84.60 {\scriptsize (+2.39)} & 88.39 {\scriptsize (+2.03)} \\
+shear & Nordland & 72.23 {\scriptsize (+2.68)} & 83.60 {\scriptsize (+1.39)} & 87.46 {\scriptsize (+1.10)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on SVOX (all queries) (17,166 database images, 14,278 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_svox}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & SVOX & 97.44 & 98.66 & 98.90 \\
+\midrule
+crop & SVOX & 97.42 {\scriptsize ($-$0.02)} & 98.73 {\scriptsize (+0.07)} & 99.07 {\scriptsize (+0.17)} \\
+perspective & SVOX & 97.26 {\scriptsize ($-$0.18)} & 98.59 {\scriptsize ($-$0.07)} & 98.91 {\scriptsize (+0.01)} \\
+rotate & SVOX & 97.34 {\scriptsize ($-$0.10)} & 98.67 {\scriptsize (+0.01)} & 98.92 {\scriptsize (+0.02)} \\
+translate & SVOX & \textbf{97.46} {\scriptsize (+0.02)} & 98.74 {\scriptsize (+0.08)} & 98.99 {\scriptsize (+0.09)} \\
+shear & SVOX & 97.32 {\scriptsize ($-$0.12)} & \textbf{98.78} {\scriptsize (+0.12)} & \textbf{99.09} {\scriptsize (+0.19)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on SVOX Night (17,166 database images, 823 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_svox_night}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & SVOX Night & 13.12 & 26.73 & 34.39 \\
+\midrule
+crop & SVOX Night & 15.19 {\scriptsize (+2.07)} & 27.70 {\scriptsize (+0.97)} & 32.93 {\scriptsize ($-$1.46)} \\
+perspective & SVOX Night & 19.56 {\scriptsize (+6.44)} & 30.62 {\scriptsize (+3.89)} & 36.45 {\scriptsize (+2.06)} \\
+rotate & SVOX Night & \textbf{22.72} {\scriptsize (+9.60)} & \textbf{37.18} {\scriptsize (+10.45)} & \textbf{46.90} {\scriptsize (+12.51)} \\
+translate & SVOX Night & 17.13 {\scriptsize (+4.01)} & 29.53 {\scriptsize (+2.80)} & 38.27 {\scriptsize (+3.88)} \\
+shear & SVOX Night & 19.81 {\scriptsize (+6.69)} & 31.59 {\scriptsize (+4.86)} & 40.83 {\scriptsize (+6.44)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on SVOX Overcast (17,166 database images, 872 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_svox_overcast}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & SVOX Overcast & 95.18 & 98.17 & \textbf{98.62} \\
+\midrule
+crop & SVOX Overcast & 95.64 {\scriptsize (+0.46)} & 98.05 {\scriptsize ($-$0.12)} & 98.17 {\scriptsize ($-$0.45)} \\
+perspective & SVOX Overcast & 94.61 {\scriptsize ($-$0.57)} & 97.94 {\scriptsize ($-$0.23)} & 98.05 {\scriptsize ($-$0.57)} \\
+rotate & SVOX Overcast & 95.18 {\scriptsize (+0.00)} & 97.59 {\scriptsize ($-$0.58)} & 98.05 {\scriptsize ($-$0.57)} \\
+translate & SVOX Overcast & 95.53 {\scriptsize (+0.35)} & \textbf{98.39} {\scriptsize (+0.22)} & \textbf{98.62} {\scriptsize (+0.00)} \\
+shear & SVOX Overcast & \textbf{96.10} {\scriptsize (+0.92)} & \textbf{98.39} {\scriptsize (+0.22)} & 98.51 {\scriptsize ($-$0.11)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on SVOX Rain (17,166 database images, 937 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_svox_rain}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & SVOX Rain & 88.69 & 95.09 & 96.58 \\
+\midrule
+crop & SVOX Rain & 87.73 {\scriptsize ($-$0.96)} & 94.34 {\scriptsize ($-$0.75)} & 95.84 {\scriptsize ($-$0.74)} \\
+perspective & SVOX Rain & 87.83 {\scriptsize ($-$0.86)} & 94.34 {\scriptsize ($-$0.75)} & 95.84 {\scriptsize ($-$0.74)} \\
+rotate & SVOX Rain & 87.09 {\scriptsize ($-$1.60)} & 94.45 {\scriptsize ($-$0.64)} & 95.62 {\scriptsize ($-$0.96)} \\
+translate & SVOX Rain & \textbf{89.11} {\scriptsize (+0.42)} & \textbf{95.73} {\scriptsize (+0.64)} & \textbf{96.69} {\scriptsize (+0.11)} \\
+shear & SVOX Rain & 88.26 {\scriptsize ($-$0.43)} & 95.09 {\scriptsize (+0.00)} & 96.48 {\scriptsize ($-$0.10)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on SVOX Snow (17,166 database images, 870 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_svox_snow}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & SVOX Snow & 94.48 & 98.05 & 98.39 \\
+\midrule
+crop & SVOX Snow & 94.94 {\scriptsize (+0.46)} & 98.39 {\scriptsize (+0.34)} & 98.62 {\scriptsize (+0.23)} \\
+perspective & SVOX Snow & 94.48 {\scriptsize (+0.00)} & 98.05 {\scriptsize (+0.00)} & 98.51 {\scriptsize (+0.12)} \\
+rotate & SVOX Snow & 94.83 {\scriptsize (+0.35)} & 98.39 {\scriptsize (+0.34)} & 98.51 {\scriptsize (+0.12)} \\
+translate & SVOX Snow & 95.17 {\scriptsize (+0.69)} & 98.16 {\scriptsize (+0.11)} & 98.28 {\scriptsize ($-$0.11)} \\
+shear & SVOX Snow & \textbf{95.86} {\scriptsize (+1.38)} & \textbf{98.51} {\scriptsize (+0.46)} & \textbf{98.97} {\scriptsize (+0.58)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Effect of geometric augmentation on SVOX Sun (17,166 database images, 854 queries). Recall@K in \%; values in brackets are the change from the no-augmentation baseline in percentage points. Best value per column in bold.}
+\label{tab:geoaug_svox_sun}
+\begin{tabular}{llrrr}
+\toprule
+Condition & Dataset & R@1 & R@5 & R@10 \\
+\midrule
+none & SVOX Sun & 79.27 & 87.12 & 90.16 \\
+\midrule
+crop & SVOX Sun & 77.05 {\scriptsize ($-$2.22)} & 88.64 {\scriptsize (+1.52)} & 91.57 {\scriptsize (+1.41)} \\
+perspective & SVOX Sun & 79.86 {\scriptsize (+0.59)} & 88.99 {\scriptsize (+1.87)} & 90.98 {\scriptsize (+0.82)} \\
+rotate & SVOX Sun & 78.92 {\scriptsize ($-$0.35)} & 87.82 {\scriptsize (+0.70)} & 90.75 {\scriptsize (+0.59)} \\
+translate & SVOX Sun & \textbf{80.44} {\scriptsize (+1.17)} & \textbf{90.52} {\scriptsize (+3.40)} & \textbf{93.21} {\scriptsize (+3.05)} \\
+shear & SVOX Sun & 78.22 {\scriptsize ($-$1.05)} & 89.11 {\scriptsize (+1.99)} & 91.57 {\scriptsize (+1.41)} \\
+\bottomrule
+\end{tabular}
+\end{table}

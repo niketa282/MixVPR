@@ -85,11 +85,11 @@ class TestDataset(Dataset):
         return len(self.images)
 
 
-def best_checkpoint(condition, logs_dir='./LOGS'):
+def best_checkpoint(condition, seed, logs_dir='./LOGS'):
     """Highest R1 in the filename; ties go to the later epoch."""
-    ckpts = glob.glob(join(logs_dir, f'rgb_{condition}', 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
+    ckpts = glob.glob(join(logs_dir, f'rgb_{condition}_s{seed}', 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
     if not ckpts:
-        raise FileNotFoundError(f'No checkpoints found for condition {condition}')
+        raise FileNotFoundError(f'No checkpoints found for condition {condition}, seed {seed}')
 
     def key(path):
         r1 = float(re.search(r'R1\[([\d.]+)\]', path).group(1))
@@ -117,8 +117,11 @@ def main():
     parser.add_argument('--datasets', nargs='+', default=list(TEST_SETS), choices=list(TEST_SETS))
     parser.add_argument('--batch_size', type=int, default=120)
     parser.add_argument('--num_workers', type=int, default=8)
-    parser.add_argument('--out', default='results/test_results.csv')
+    parser.add_argument('--out', default=None)
+    parser.add_argument('--seed', type=int, default=190223)
     args = parser.parse_args()
+    if args.out is None:
+        args.out = f'results/seed{args.seed}/test_results.csv'
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     write_header = not os.path.exists(args.out)
@@ -126,10 +129,10 @@ def main():
     with open(args.out, 'a', newline='') as f:
         writer = csv.writer(f)
         if write_header:
-            writer.writerow(['condition', 'dataset', 'R1', 'R5', 'R10', 'num_db', 'num_queries', 'checkpoint'])
+            writer.writerow(['seed','condition', 'dataset', 'R1', 'R5', 'R10', 'num_db', 'num_queries', 'checkpoint'])
 
         for condition in args.conditions:
-            ckpt = best_checkpoint(condition)
+            ckpt = best_checkpoint(condition, args.seed)
             print(f'\n===== {condition}: {ckpt}')
             model = VPRModel.load_from_checkpoint(ckpt, map_location='cpu').cuda().eval()
 
@@ -147,7 +150,7 @@ def main():
                     dataset_name=f'{name} ({condition})',
                     faiss_gpu=False,
                 )
-                writer.writerow([condition, name,
+                writer.writerow([args.seed, condition, name,
                                  f'{100 * recalls[1]:.2f}', f'{100 * recalls[5]:.2f}', f'{100 * recalls[10]:.2f}',
                                  dataset.num_references, len(dataset) - dataset.num_references, ckpt])
                 f.flush()
