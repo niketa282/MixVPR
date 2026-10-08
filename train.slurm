@@ -14,4 +14,4 @@ conda activate mixvpr
 cd /iridisfs/home/ng3n18/projects/MixVPR
 
 nvidia-smi
-python main.py --geo_aug ${1:-none}
+python main.py --geo_aug ${1:-none} --seed ${2:-190223}
