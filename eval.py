@@ -38,6 +38,13 @@ TEST_SETS = {
     'svox_rain':      ('svox/images/test/gallery',      'svox/images/test/queries_rain'),
     'svox_snow':      ('svox/images/test/gallery',      'svox/images/test/queries_snow'),
     'svox_sun':       ('svox/images/test/gallery',      'svox/images/test/queries_sun'),
+    'pitts250k_test': ('pitts250k/images/test/database', 'pitts250k/images/test/queries'),
+    'msls_val':       ('msls/val/database',             'msls/val/queries'),
+    'tokyo247':       ('tokyo247/images/test/database', 'tokyo247/images/test/queries'),
+    'sf_xl_small':    ('small/test/database',           'small/test/queries_v1'),
+    'amstertime':     ('amstertime/images/test/database', 'amstertime/images/test/queries'),  # 1-to-1 pairs, 1000 m apart
+    'st_lucia':       ('st_lucia/images/test/database', 'st_lucia/images/test/queries'),
+    'eynsham':        ('eynsham/images/test/database',  'eynsham/images/test/queries'),
 }
 
 CONDITIONS = ['none', 'crop', 'perspective', 'rotate', 'translate', 'shear']
