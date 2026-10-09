@@ -1,3 +1,5 @@
+import random
+
 import pytorch_lightning as pl
 from torch.utils.data.dataloader import DataLoader
 from torchvision import transforms as T
@@ -8,7 +10,22 @@ from . import PittsburgDataset
 
 from prettytable import PrettyTable
 
-IMAGENET_MEAN_STD = {'mean': [0.485, 0.456, 0.406], 
+class RandomSubset:
+    """Apply k randomly chosen transforms from a list, in random order."""
+    def __init__(self, transforms, k):
+        self.transforms = transforms
+        self.k = k
+
+    def __call__(self, img):
+        for t in random.sample(self.transforms, self.k):
+            img = t(img)
+        return img
+
+    def __repr__(self):
+        return f"RandomSubset(k={self.k}, transforms={self.transforms})"
+
+
+IMAGENET_MEAN_STD = {'mean': [0.485, 0.456, 0.406],
                      'std': [0.229, 0.224, 0.225]}
 
 VIT_MEAN_STD = {'mean': [0.5, 0.5, 0.5], 
@@ -84,6 +101,11 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             'translate':   T.RandomAffine(degrees=0, translate=(0.05, 0.05), interpolation=T.InterpolationMode.BILINEAR),
             'shear':       T.RandomAffine(degrees=0, shear=(-5, 5, -5, 5), interpolation=T.InterpolationMode.BILINEAR),
         }
+        # combined geometric: k of the five single transforms per image, chosen at random, in random order
+        GEO_LIST = [GEO_AUGS['crop'], GEO_AUGS['perspective'], GEO_AUGS['rotate'],
+                    GEO_AUGS['translate'], GEO_AUGS['shear']]
+        for k in (1, 2, 3):
+            GEO_AUGS[f'geo_k{k}'] = RandomSubset(GEO_LIST, k)
         if geo_aug not in GEO_AUGS:
             raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
  

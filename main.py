@@ -228,7 +228,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--geo_aug', default='none',
                         choices=['none', 'randaugment', 'crop', 'perspective',
-                                 'rotate', 'translate', 'shear'])
+                                 'rotate', 'translate', 'shear',
+                                 'geo_k1', 'geo_k2', 'geo_k3'])
     parser.add_argument('--seed', type=int, default=190223)
     args = parser.parse_args()
 
