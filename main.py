@@ -231,6 +231,7 @@ if __name__ == '__main__':
                                  'rotate', 'translate', 'shear',
                                  'geo_k1', 'geo_k2', 'geo_k3'])
     parser.add_argument('--seed', type=int, default=190223)
+    parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
     args = parser.parse_args()
 
     pl.seed_everything(seed=args.seed, workers=True) # Changed
@@ -246,6 +247,7 @@ if __name__ == '__main__':
         show_data_stats=True,
         val_set_names=['pitts30k_val'],     # CHANGED: validation only, no test sets
         geo_aug=args.geo_aug,               # NEW
+        input=args.input                    # NEW
     )
     
     # examples of backbones
@@ -313,7 +315,7 @@ if __name__ == '__main__':
     # we instanciate a trainer
     trainer = pl.Trainer(
         accelerator='gpu', devices=[0],
-        default_root_dir=f'./LOGS/rgb_{args.geo_aug}_s{args.seed}',   # CHANGED: one folder per condition 
+        default_root_dir=f'./LOGS/{args.input}_{args.geo_aug}_s{args.seed}',   # CHANGED: one folder per condition 
 
         num_sanity_val_steps=0, # runs a validation step before stating training
         precision=16, # we use half precision to reduce  memory usage

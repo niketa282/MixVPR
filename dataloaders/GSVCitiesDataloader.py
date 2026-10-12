@@ -73,6 +73,7 @@ class GSVCitiesDataModule(pl.LightningDataModule):
                  random_sample_from_each_place=True,
                  val_set_names=['pitts30k_val'],   # CHANGED (3): validate on Pitts30k-val only
                  geo_aug='none', 
+                 input='rgb', 
                  ):
         super().__init__()
         self.batch_size = batch_size
@@ -108,17 +109,20 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             GEO_AUGS[f'geo_k{k}'] = RandomSubset(GEO_LIST, k)
         if geo_aug not in GEO_AUGS:
             raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
- 
+        
+        if input not in ('rgb', 'gray'):
+            raise ValueError(f"Unknown input '{input}'. Options: ['rgb', 'gray']")
+        to_input = [T.Grayscale(num_output_channels=3)] if input == 'gray' else []
+        
         train_ops = [T.Resize(image_size, interpolation=T.InterpolationMode.BILINEAR)]
         if GEO_AUGS[geo_aug] is not None:
             train_ops.append(GEO_AUGS[geo_aug])
-        train_ops += [T.ToTensor(), T.Normalize(mean=self.mean_dataset, std=self.std_dataset)]
+        train_ops += to_input +[T.ToTensor(), T.Normalize(mean=self.mean_dataset, std=self.std_dataset)]
         self.train_transform = T.Compose(train_ops)
 
         self.valid_transform = T.Compose([
-            T.Resize(image_size, interpolation=T.InterpolationMode.BILINEAR),
-            T.ToTensor(),
-            T.Normalize(mean=self.mean_dataset, std=self.std_dataset)])
+            T.Resize(image_size, interpolation=T.InterpolationMode.BILINEAR)] + to_input +
+           [T.ToTensor(), T.Normalize(mean=self.mean_dataset, std=self.std_dataset)])
 
         self.train_loader_config = {
             'batch_size': self.batch_size,

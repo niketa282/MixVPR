@@ -53,17 +53,17 @@ POS_DIST_THRESHOLD = 25  # metres (frames x 2.4 for Nordland)
 K_VALUES = [1, 5, 10, 15, 20, 50, 100]
 
 # same as the validation transform used during training
-EVAL_TRANSFORM = T.Compose([
-    T.Resize((320, 320), interpolation=T.InterpolationMode.BILINEAR),
-    T.ToTensor(),
-    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
+def eval_transform(input='rgb'):
+    return T.Compose(
+        [T.Resize((320, 320), interpolation=T.InterpolationMode.BILINEAR)] +
+        ([T.Grayscale(num_output_channels=3)] if input == 'gray' else []) +
+        [T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
 class TestDataset(Dataset):
     """Database images followed by query images, like PittsburgDataset during validation."""
 
-    def __init__(self, db_dir, q_dir, transform=EVAL_TRANSFORM):
+    def __init__(self, db_dir, q_dir, transform=None):
+        transform = transform or eval_transform('rgb')
         self.db_paths = sorted(glob.glob(join(db_dir, '**', '*.jpg'), recursive=True))
         self.q_paths = sorted(glob.glob(join(q_dir, '**', '*.jpg'), recursive=True))
         if not self.db_paths or not self.q_paths:
@@ -92,9 +92,9 @@ class TestDataset(Dataset):
         return len(self.images)
 
 
-def best_checkpoint(condition, seed, logs_dir='./LOGS'):
+def best_checkpoint(condition, seed, input='rgb', logs_dir='./LOGS'):
     """Highest R1 in the filename; ties go to the later epoch."""
-    ckpts = glob.glob(join(logs_dir, f'rgb_{condition}_s{seed}', 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
+    ckpts = glob.glob(join(logs_dir, f'{input}_{condition}_s{seed}', 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
     if not ckpts:
         raise FileNotFoundError(f'No checkpoints found for condition {condition}, seed {seed}')
 
@@ -126,9 +126,11 @@ def main():
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--out', default=None)
     parser.add_argument('--seed', type=int, default=190223)
+    parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
     args = parser.parse_args()
     if args.out is None:
-        args.out = f'results/seed{args.seed}/test_results.csv'
+        suffix = '' if args.input == 'rgb' else f'_{args.input}'
+        args.out = f'results/seed{args.seed}/test_results{suffix}.csv'
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     write_header = not os.path.exists(args.out)
@@ -139,13 +141,13 @@ def main():
             writer.writerow(['seed','condition', 'dataset', 'R1', 'R5', 'R10', 'num_db', 'num_queries', 'checkpoint'])
 
         for condition in args.conditions:
-            ckpt = best_checkpoint(condition, args.seed)
+            ckpt = best_checkpoint(condition, args.seed, args.input)
             print(f'\n===== {condition}: {ckpt}')
             model = VPRModel.load_from_checkpoint(ckpt, map_location='cpu').cuda().eval()
 
             for name in args.datasets:
                 db_dir, q_dir = (join(GEOSETS, d) for d in TEST_SETS[name])
-                dataset = TestDataset(db_dir, q_dir)
+                dataset = TestDataset(db_dir, q_dir, transform=eval_transform(args.input))
                 feats = compute_descriptors(model, dataset, args.batch_size, args.num_workers)
 
                 recalls = utils.get_validation_recalls(
