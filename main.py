@@ -229,7 +229,8 @@ if __name__ == '__main__':
     parser.add_argument('--geo_aug', default='none',
                         choices=['none', 'randaugment', 'crop', 'perspective',
                                  'rotate', 'translate', 'shear',
-                                 'geo_k1', 'geo_k2', 'geo_k3'])
+                                 'geo_k1', 'geo_k2', 'geo_k3',
+                                 'brightness', 'contrast', 'autocontrast', 'blur'])
     parser.add_argument('--seed', type=int, default=190223)
     parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
     args = parser.parse_args()

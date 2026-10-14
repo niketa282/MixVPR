@@ -101,6 +101,12 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             'rotate':      T.RandomRotation(degrees=10, interpolation=T.InterpolationMode.BILINEAR),
             'translate':   T.RandomAffine(degrees=0, translate=(0.05, 0.05), interpolation=T.InterpolationMode.BILINEAR),
             'shear':       T.RandomAffine(degrees=0, shear=(-5, 5, -5, 5), interpolation=T.InterpolationMode.BILINEAR),
+            # photometric: applied before any grayscale conversion; random strength on every image, except
+            # autocontrast, which has no strength parameter and is therefore applied to half the images
+            'brightness':   T.ColorJitter(brightness=(0.6, 1.4)),
+            'contrast':     T.ColorJitter(contrast=(0.6, 1.4)),
+            'autocontrast': T.RandomAutocontrast(p=0.5),
+            'blur':         T.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
         }
         # combined geometric: k of the five single transforms per image, chosen at random, in random order
         GEO_LIST = [GEO_AUGS['crop'], GEO_AUGS['perspective'], GEO_AUGS['rotate'],
