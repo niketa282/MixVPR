@@ -113,6 +113,10 @@ class GSVCitiesDataModule(pl.LightningDataModule):
                     GEO_AUGS['translate'], GEO_AUGS['shear']]
         for k in (1, 2, 3):
             GEO_AUGS[f'geo_k{k}'] = RandomSubset(GEO_LIST, k)
+        # combined photometric: k of the four single photometric transforms per image, chosen at random, in random order
+        PHOT_LIST = [GEO_AUGS['brightness'], GEO_AUGS['contrast'], GEO_AUGS['autocontrast'], GEO_AUGS['blur']]
+        for k in (1, 2, 3):
+            GEO_AUGS[f'phot_k{k}'] = RandomSubset(PHOT_LIST, k)
         if geo_aug not in GEO_AUGS:
             raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
         
