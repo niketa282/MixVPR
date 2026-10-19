@@ -117,6 +117,12 @@ class GSVCitiesDataModule(pl.LightningDataModule):
         PHOT_LIST = [GEO_AUGS['brightness'], GEO_AUGS['contrast'], GEO_AUGS['autocontrast'], GEO_AUGS['blur']]
         for k in (1, 2, 3):
             GEO_AUGS[f'phot_k{k}'] = RandomSubset(PHOT_LIST, k)
+        # strength sweep: same transforms as 'perspective' (0.2) and 'contrast' (0.6-1.4) at other strengths
+        for s in (0.1, 0.3, 0.4):
+            GEO_AUGS[f'perspective_{s}'] = T.RandomPerspective(distortion_scale=s, p=1.0,
+                                                               interpolation=T.InterpolationMode.BILINEAR)
+        for lo, hi in ((0.8, 1.2), (0.4, 1.6), (0.2, 1.8)):
+            GEO_AUGS[f'contrast_{lo}-{hi}'] = T.ColorJitter(contrast=(lo, hi))
         if geo_aug not in GEO_AUGS:
             raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
         
