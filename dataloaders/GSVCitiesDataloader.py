@@ -95,6 +95,8 @@ class GSVCitiesDataModule(pl.LightningDataModule):
         GEO_AUGS = {
             'none':        None,
             'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),  # original MixVPR default
+            # TrivialAugment (Mueller & Hutter, ICCV 2021): one random op per image, random magnitude, no tuning
+            'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
             'crop':        T.RandomResizedCrop(image_size, scale=(0.7, 1.0), ratio=(0.9, 1.1),
                                                interpolation=T.InterpolationMode.BILINEAR),
             'perspective': T.RandomPerspective(distortion_scale=0.2, p=1.0, interpolation=T.InterpolationMode.BILINEAR),  # decide p (0.5 or 1.0) and state it in methods

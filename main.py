@@ -233,7 +233,8 @@ if __name__ == '__main__':
                                  'brightness', 'contrast', 'autocontrast', 'blur',
                                  'phot_k1', 'phot_k2', 'phot_k3',
                                  'perspective_0.1', 'perspective_0.3', 'perspective_0.4',
-                                 'contrast_0.8-1.2', 'contrast_0.4-1.6', 'contrast_0.2-1.8'])
+                                 'contrast_0.8-1.2', 'contrast_0.4-1.6', 'contrast_0.2-1.8',
+                                 'trivialaugment'])
     parser.add_argument('--seed', type=int, default=190223)
     parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
     args = parser.parse_args()
