@@ -125,6 +125,12 @@ class GSVCitiesDataModule(pl.LightningDataModule):
                                                                interpolation=T.InterpolationMode.BILINEAR)
         for lo, hi in ((0.8, 1.2), (0.4, 1.6), (0.2, 1.8)):
             GEO_AUGS[f'contrast_{lo}-{hi}'] = T.ColorJitter(contrast=(lo, hi))
+        # grayscale strength sweep: best single transforms for grayscale, 'shear' (5 deg) and 'brightness' (0.6-1.4)
+        for s in (2.5, 7.5, 10):
+            GEO_AUGS[f'shear_{s}'] = T.RandomAffine(degrees=0, shear=(-s, s, -s, s),
+                                                    interpolation=T.InterpolationMode.BILINEAR)
+        for lo, hi in ((0.8, 1.2), (0.4, 1.6), (0.2, 1.8)):
+            GEO_AUGS[f'brightness_{lo}-{hi}'] = T.ColorJitter(brightness=(lo, hi))
         if geo_aug not in GEO_AUGS:
             raise ValueError(f"Unknown geo_aug '{geo_aug}'. Options: {list(GEO_AUGS)}")
         
