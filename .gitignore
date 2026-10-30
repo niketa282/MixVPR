@@ -3,3 +3,7 @@ __pycache__
 LOGS
 logs/
 .vscode/
+# result figures and documents: kept locally, not published
+results/figures/
+results/**/*.docx
+results/**/*.tex
