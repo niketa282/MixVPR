@@ -119,6 +119,8 @@ class GSVCitiesDataModule(pl.LightningDataModule):
         PHOT_LIST = [GEO_AUGS['brightness'], GEO_AUGS['contrast'], GEO_AUGS['autocontrast'], GEO_AUGS['blur']]
         for k in (1, 2, 3):
             GEO_AUGS[f'phot_k{k}'] = RandomSubset(PHOT_LIST, k)
+        # combined geometric + photometric: k of all nine single transforms per image; k=3 matches RandAugment's num_ops
+        GEO_AUGS['all_k3'] = RandomSubset(GEO_LIST + PHOT_LIST, 3)
         # strength sweep: same transforms as 'perspective' (0.2) and 'contrast' (0.6-1.4) at other strengths
         for s in (0.1, 0.3, 0.4):
             GEO_AUGS[f'perspective_{s}'] = T.RandomPerspective(distortion_scale=s, p=1.0,

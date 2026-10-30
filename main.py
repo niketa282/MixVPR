@@ -236,7 +236,7 @@ if __name__ == '__main__':
                                  'contrast_0.8-1.2', 'contrast_0.4-1.6', 'contrast_0.2-1.8',
                                  'shear_2.5', 'shear_7.5', 'shear_10',
                                  'brightness_0.8-1.2', 'brightness_0.4-1.6', 'brightness_0.2-1.8',
-                                 'trivialaugment'])
+                                 'trivialaugment', 'all_k3'])
     parser.add_argument('--seed', type=int, default=190223)
     parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
     args = parser.parse_args()
