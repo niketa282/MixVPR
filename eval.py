@@ -41,11 +41,26 @@ TEST_SETS = {
     'pitts250k_test': ('pitts250k/images/test/database', 'pitts250k/images/test/queries'),
     'msls_val':       ('msls/val/database',             'msls/val/queries'),
     'tokyo247':       ('tokyo247/images/test/database', 'tokyo247/images/test/queries'),
+    'tokyo247_day':    ('tokyo247/images/test/database', 'tokyo247/images/test/queries', 'D'),
+    'tokyo247_sunset': ('tokyo247/images/test/database', 'tokyo247/images/test/queries', 'S'),
+    'tokyo247_night':  ('tokyo247/images/test/database', 'tokyo247/images/test/queries', 'N'),
     'sf_xl_small':    ('small/test/database',           'small/test/queries_v1'),
     'amstertime':     ('amstertime/images/test/database', 'amstertime/images/test/queries'),  # 1-to-1 pairs, 1000 m apart
     'st_lucia':       ('st_lucia/images/test/database', 'st_lucia/images/test/queries'),
     'eynsham':        ('eynsham/images/test/database',  'eynsham/images/test/queries'),
 }
+
+TOKYO_META = join(GEOSETS, 'tokyo247_unformatted/247query_subset_v2')
+
+def tokyo_query_ids(time_code):
+    """Original Tokyo 24/7 query numbers (e.g. '00012') taken at time_code: 'D' day, 'S' sunset, 'N' night."""
+    ids = set()
+    for path in glob.glob(join(TOKYO_META, '*.csv')):
+        with open(path) as f:
+            fields = f.readline().strip().split(',')
+        if fields[5] == time_code:
+            ids.add(fields[0][:-len('.jpg')])
+    return ids
 
 CONDITIONS = ['none', 'crop', 'perspective', 'rotate', 'translate', 'shear']
 
@@ -62,10 +77,13 @@ def eval_transform(input='rgb'):
 class TestDataset(Dataset):
     """Database images followed by query images, like PittsburgDataset during validation."""
 
-    def __init__(self, db_dir, q_dir, transform=None):
+    def __init__(self, db_dir, q_dir, transform=None, q_ids=None):
         transform = transform or eval_transform('rgb')
         self.db_paths = sorted(glob.glob(join(db_dir, '**', '*.jpg'), recursive=True))
         self.q_paths = sorted(glob.glob(join(q_dir, '**', '*.jpg'), recursive=True))
+        if q_ids is not None:
+            # query name: @east@north@zone@band@lat@lon@<original name>.jpg@...
+            self.q_paths = [p for p in self.q_paths if os.path.basename(p).split('@')[7][:-len('.jpg')] in q_ids]
         if not self.db_paths or not self.q_paths:
             raise FileNotFoundError(f'No images found in {db_dir} or {q_dir}')
         self.images = self.db_paths + self.q_paths
@@ -146,8 +164,9 @@ def main():
             model = VPRModel.load_from_checkpoint(ckpt, map_location='cpu').cuda().eval()
 
             for name in args.datasets:
-                db_dir, q_dir = (join(GEOSETS, d) for d in TEST_SETS[name])
-                dataset = TestDataset(db_dir, q_dir, transform=eval_transform(args.input))
+                db_dir, q_dir = (join(GEOSETS, d) for d in TEST_SETS[name][:2])
+                q_ids = tokyo_query_ids(TEST_SETS[name][2]) if len(TEST_SETS[name]) == 3 else None
+                dataset = TestDataset(db_dir, q_dir, transform=eval_transform(args.input), q_ids=q_ids)
                 feats = compute_descriptors(model, dataset, args.batch_size, args.num_workers)
 
                 recalls = utils.get_validation_recalls(
