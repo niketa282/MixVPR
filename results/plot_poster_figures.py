@@ -3,16 +3,10 @@
   night_rgb_vs_gray.png   SVOX Night R@1: no aug. / best geometric / best photometric / RandAugment, RGB vs. gray
   k_lines.png             R@1 vs. number of mixed augmentations k (day mean of 14 sets | night)
   best_per_set.png        per-test-set gain table (best geometric, best photometric, RandAugment; RGB | gray)
-  night_example.png       one SVOX night query in RGB and grayscale, with its day database match
-  vpr_pipeline_train.png  method figures from plot_vpr_pipeline_ieee.py, re-saved at high resolution
-  vpr_pipeline_test.png
 
-Needs the mixvpr env (torch, sklearn) for the image figures:
-    ~/.conda/envs/mixvpr/bin/python results/plot_poster_figures.py
+    python3 results/plot_poster_figures.py
 """
-import glob
 import os
-import sys
 from types import SimpleNamespace
 
 import matplotlib
@@ -22,11 +16,6 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from matplotlib.patches import Patch, Rectangle
 import numpy as np
 import pandas as pd
-from PIL import Image
-from sklearn.neighbors import NearestNeighbors
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import plot_vpr_pipeline_ieee as pipe
 
 OUT = 'results/figures/poster'
 SEEDS = [190223, 1, 2]
@@ -168,48 +157,11 @@ def best_per_set(R, G):
     save(fig, 'best_per_set')
 
 
-def night_example(query_idx=300):
-    q_paths = sorted(glob.glob(f'{pipe.SVOX}/queries_night/*.jpg'))
-    db_paths = sorted(glob.glob(f'{pipe.SVOX}/gallery/*.jpg'))
-    utm = lambda ps: np.array([(float(os.path.basename(p).split('@')[1]), float(os.path.basename(p).split('@')[2]))
-                               for p in ps])
-    q = q_paths[query_idx]
-    match = db_paths[int(NearestNeighbors(n_neighbors=1).fit(utm(db_paths)).kneighbors(utm([q]))[1][0, 0])]
-    q_img = pipe.square(Image.open(q).convert('RGB'), 512)
-    panels = [(q_img, 'Night query (RGB)', '#c98500'), (q_img.convert('L').convert('RGB'), 'Same query (grayscale)',
-                                                         C_GRAY),
-              (pipe.square(Image.open(match).convert('RGB'), 512), 'Database (day)', '#0ca30c')]
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5.6))
-    for ax, (im, lab, col) in zip(axes, panels):
-        ax.imshow(im)
-        ax.set_xticks([]); ax.set_yticks([])
-        for sp in ax.spines.values():
-            sp.set_edgecolor(col); sp.set_linewidth(5)
-        ax.set_title(lab, fontsize=FS + 2, color=col, fontweight='bold', pad=10)
-    fig.tight_layout(w_pad=2)
-    save(fig, 'night_example')
-
-
-def pipeline():
-    """Re-save the method figures at high resolution (they are drawn 7.16 in wide)."""
-    def hi_res_save(self, stem):
-        name = os.path.basename(stem)
-        os.makedirs(OUT, exist_ok=True)
-        self.fig.savefig(f'{OUT}/{name}.png', dpi=800, bbox_inches='tight', pad_inches=0.03, facecolor='white')
-        print('saved', f'{OUT}/{name}.png')
-    pipe.Canvas.save = hi_res_save
-    args = SimpleNamespace(query_idx=300, place='0000002')
-    pipe.training(args)
-    pipe.testing(args)
-
-
 def main():
     R, G = load(''), load('_gray')
     night_bars(R, G)
     k_lines(R, G)
     best_per_set(R, G)
-    night_example()
-    pipeline()
 
 
 if __name__ == '__main__':
