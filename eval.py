@@ -110,9 +110,14 @@ class TestDataset(Dataset):
         return len(self.images)
 
 
-def best_checkpoint(condition, seed, input='rgb', logs_dir='./LOGS'):
+def best_checkpoint(condition, seed, input='rgb', logs_dir='./LOGS', backbone='resnet50'):
     """Highest R1 in the filename; ties go to the later epoch."""
-    ckpts = glob.glob(join(logs_dir, f'{input}_{condition}_s{seed}', 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
+    if backbone != 'resnet50':
+        root_dir=f'./{backbone}_{input}_{condition}_s{seed}'
+        ckpts = glob.glob(join(logs_dir, root_dir, 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
+    else:
+        root_dir=f'./{input}_{condition}_s{seed}'
+        ckpts = glob.glob(join(logs_dir, root_dir, 'lightning_logs', '*', 'checkpoints', '*.ckpt'))
     if not ckpts:
         raise FileNotFoundError(f'No checkpoints found for condition {condition}, seed {seed}')
 
@@ -143,12 +148,16 @@ def main():
     parser.add_argument('--batch_size', type=int, default=120)
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--out', default=None)
+    parser.add_argument('--backbone', default='resnet50', choices=['resnet18', 'resnet50'])
     parser.add_argument('--seed', type=int, default=190223)
     parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
     args = parser.parse_args()
     if args.out is None:
         suffix = '' if args.input == 'rgb' else f'_{args.input}'
-        args.out = f'results/seed{args.seed}/test_results{suffix}.csv'
+        if args.backbone != 'resnet50':
+            args.out = f'results/seed{args.seed}/{args.backbone}_test_results{suffix}.csv'
+        else:
+            args.out = f'results/seed{args.seed}/test_results{suffix}.csv'
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     write_header = not os.path.exists(args.out)
@@ -159,7 +168,7 @@ def main():
             writer.writerow(['seed','condition', 'dataset', 'R1', 'R5', 'R10', 'num_db', 'num_queries', 'checkpoint'])
 
         for condition in args.conditions:
-            ckpt = best_checkpoint(condition, args.seed, args.input)
+            ckpt = best_checkpoint(condition, args.seed, args.input, backbone = args.backbone)
             print(f'\n===== {condition}: {ckpt}')
             model = VPRModel.load_from_checkpoint(ckpt, map_location='cpu').cuda().eval()
 

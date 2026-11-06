@@ -239,6 +239,7 @@ if __name__ == '__main__':
                                  'trivialaugment', 'augmix', 'all_k3'])
     parser.add_argument('--seed', type=int, default=190223)
     parser.add_argument('--input', default='rgb', choices=['rgb', 'gray'])
+    parser.add_argument('--backbone', default='resnet50', choices=['resnet18', 'resnet50'])
     args = parser.parse_args()
 
     pl.seed_everything(seed=args.seed, workers=True) # Changed
@@ -262,9 +263,14 @@ if __name__ == '__main__':
     # resnext50_32x4d, resnext50_32x4d_swsl , resnext101_32x4d_swsl, resnext101_32x8d_swsl
     # efficientnet_b0, efficientnet_b1, efficientnet_b2
     # swinv2_base_window12to16_192to256_22kft1k
+    if args.backbone == 'resnet18':
+        channels = 256
+    elif args.backbone == 'resnet50':
+        channels = 1024
+        
     model = VPRModel(
         #---- Encoder
-        backbone_arch='resnet50',
+        backbone_arch=args.backbone,
         pretrained=True,
         layers_to_freeze=2,
         layers_to_crop=[4], # 4 crops the last resnet layer, 3 crops the 3rd, ...etc
@@ -281,7 +287,7 @@ if __name__ == '__main__':
         #             'out_channels': 2048},
 
         agg_arch='MixVPR',
-        agg_config={'in_channels' : 1024,
+        agg_config={'in_channels' : channels,
                 'in_h' : 20,
                 'in_w' : 20,
                 'out_channels' : 1024,
@@ -318,12 +324,16 @@ if __name__ == '__main__':
         save_top_k=3,
         mode='max',)
 
+    if args.backbone != 'resnet50':
+        root_dir=f'./LOGS/{args.backbone}_{args.input}_{args.geo_aug}_s{args.seed}'
+    else:
+        root_dir=f'./LOGS/{args.input}_{args.geo_aug}_s{args.seed}'   # CHANGED: one folder per condition 
+
     #------------------
     # we instanciate a trainer
     trainer = pl.Trainer(
         accelerator='gpu', devices=[0],
-        default_root_dir=f'./LOGS/{args.input}_{args.geo_aug}_s{args.seed}',   # CHANGED: one folder per condition 
-
+        default_root_dir=root_dir,
         num_sanity_val_steps=0, # runs a validation step before stating training
         precision=16, # we use half precision to reduce  memory usage
         max_epochs=50,             
