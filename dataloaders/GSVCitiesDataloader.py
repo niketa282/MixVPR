@@ -25,6 +25,22 @@ class RandomSubset:
         return f"RandomSubset(k={self.k}, transforms={self.transforms})"
 
 
+class TrivialAugmentBounded:
+    """RandAugment with 1 op and a random magnitude from 0 to max per image."""
+    
+    def __init__(self, maximum_strength=18):
+        self.randaugment = T.RandAugment(num_ops=1, interpolation=T.InterpolationMode.BILINEAR)
+        self.maximum_strength = maximum_strength
+   
+    def __call__(self, img):
+        self.randaugment.magnitude = random.randint(0,self.maximum_strength)
+        img = self.randaugment(img)
+        return img
+       
+    def __repr__(self):
+        return f"TrivialAugmentBounded(maximum_strength={self.maximum_strength})"
+    
+
 IMAGENET_MEAN_STD = {'mean': [0.485, 0.456, 0.406],
                      'std': [0.229, 0.224, 0.225]}
 
@@ -94,6 +110,8 @@ class GSVCitiesDataModule(pl.LightningDataModule):
 
         GEO_AUGS = {
             'none':        None,
+            # RandAugment's ops, 1 per image, random magnitude 0–18 (mean 9 = RandAugment's): aims for TrivialAugment's cost with RandAugment's accuracy
+            'trivialaugment_bounded': TrivialAugmentBounded(maximum_strength=18),
             'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),  # original MixVPR default
             # TrivialAugment (Mueller & Hutter, ICCV 2021): one random op per image, random magnitude, no tuning
             'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
