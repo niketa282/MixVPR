@@ -113,6 +113,8 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             # RandAugment's ops, 1 per image, random magnitude 0–18 (mean 9 = RandAugment's): aims for TrivialAugment's cost with RandAugment's accuracy
             'trivialaugment_bounded': TrivialAugmentBounded(maximum_strength=18),
             'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),  # original MixVPR default
+            # Control
+            'randaugment_1op': T.RandAugment(num_ops=1, interpolation=T.InterpolationMode.BILINEAR),
             # TrivialAugment (Mueller & Hutter, ICCV 2021): one random op per image, random magnitude, no tuning
             'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
            # AugMix (Hendrycks et al., ICLR 2020): 3 chains of 1-3 random ops (severity 3), mixed with random weights and
