@@ -29,14 +29,15 @@ torch.manual_seed(SEED)    # RandAugment / TrivialAugment pick their operations 
 torch.set_num_threads(1)   # one thread, like a single data-loading worker; keeps timings stable
 
 img = Image.open(IMAGE_PATH).convert('RGB')
-transform = T.Resize(IMAGE_SIZE, interpolation=T.InterpolationMode.BILINEAR)
-img = transform(img)
+resize = T.Resize(IMAGE_SIZE, interpolation=T.InterpolationMode.BILINEAR)
+img = resize(img)
 
 POLICIES = {
             'none': lambda x: x,
             'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),
             'randaugment_1op': T.RandAugment(num_ops=1, interpolation=T.InterpolationMode.BILINEAR),
             'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
+            'trivialaugment_bounded_2op': T.RandomChoice([T.RandAugment(num_ops=2, magnitude=m, interpolation=T.InterpolationMode.BILINEAR) for m in range(0, 19)]),
             'trivialaugment_bounded': TrivialAugmentBounded(maximum_strength=18),
 }
 
@@ -58,4 +59,4 @@ for name, transform in POLICIES.items():
     # 5. turn that into milliseconds per image
     ms = (elapsed/N) * 1000
     # 6. print the name and the result
-    print(f'{name:24s} {ms:.2f} ms/image')
+    print(f'{name:28s} {ms:.2f} ms/image')
