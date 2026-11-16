@@ -39,7 +39,23 @@ class TrivialAugmentBounded:
        
     def __repr__(self):
         return f"TrivialAugmentBounded(maximum_strength={self.maximum_strength})"
-    
+
+class RandAugmentDropOps(T.RandAugment):
+    """RandAugment with some operations removed from its pool."""
+
+    def __init__(self, drop_ops, **kwargs):
+        super().__init__(**kwargs)          # passes num_ops, magnitude, interpolation on to RandAugment
+        self.drop_ops = drop_ops              # store the list of op names to remove
+
+    def _augmentation_space(self, num_bins, image_size):
+        ops = super()._augmentation_space(num_bins, image_size)   # RandAugment's full dict of 14 ops
+        for name in self.drop_ops:
+            del ops[name]                           # remove this key from the dict
+        return ops
+
+    def __repr__(self):
+        return f"RandAugmentDropOps(drop_ops={self.drop_ops})"
+
 
 IMAGENET_MEAN_STD = {'mean': [0.485, 0.456, 0.406],
                      'std': [0.229, 0.224, 0.225]}
@@ -115,6 +131,9 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             'randaugment': T.RandAugment(num_ops=3, interpolation=T.InterpolationMode.BILINEAR),  # original MixVPR default
             # Control
             'randaugment_1op': T.RandAugment(num_ops=1, interpolation=T.InterpolationMode.BILINEAR),
+            # RQ2: RandAugment without its colour/histogram ops
+            'randaugment_no_colour': RandAugmentDropOps(drop_ops=["Color", "Equalize", "Solarize", "Posterize"],
+                                                        num_ops=3, interpolation=T.InterpolationMode.BILINEAR),
             # TrivialAugment (Mueller & Hutter, ICCV 2021): one random op per image, random magnitude, no tuning
             'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
            # AugMix (Hendrycks et al., ICLR 2020): 3 chains of 1-3 random ops (severity 3), mixed with random weights and
