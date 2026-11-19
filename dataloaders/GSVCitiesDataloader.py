@@ -3,6 +3,9 @@ import random
 import pytorch_lightning as pl
 from torch.utils.data.dataloader import DataLoader
 from torchvision import transforms as T
+from torchvision.transforms import functional as F
+from torchvision.transforms.autoaugment import _apply_op
+
 
 from dataloaders.GSVCitiesDataset import GSVCitiesDataset
 from . import PittsburgDataset
@@ -56,6 +59,38 @@ class RandAugmentDropOps(T.RandAugment):
     def __repr__(self):
         return f"RandAugmentDropOps(drop_ops={self.drop_ops})"
 
+class TrivialAugmentWeighted(T.RandAugment):
+    """1 operation class with colour operations applied more often"""
+    def __init__(self, colour_ops, colour_prob=0.64, maximum_strength=18, **kwargs):
+        super().__init__(num_ops=1,**kwargs)
+        self.colour_ops = colour_ops
+        self.colour_prob = colour_prob
+        self.maximum_strength = maximum_strength
+    
+    def forward(self, img):
+        _, height, width = F.get_dimensions(img)
+        ops = self._augmentation_space(self.num_magnitude_bins, (height, width))
+        names = list(ops.keys())
+        weights=[]
+        colour_weight = self.colour_prob / len(self.colour_ops)
+        other_weight = (1 - self.colour_prob) / (len(names) - len(self.colour_ops))
+        for name in names:
+             if name in self.colour_ops:
+                 weights.append(colour_weight)
+             else:
+                 weights.append(other_weight)
+        op_name = random.choices(names, weights=weights)[0]
+        self.last_op = op_name
+        magnitudes, signed = ops[op_name]
+        strength = random.randint(0, self.maximum_strength)
+        magnitude = float(magnitudes[strength].item()) if magnitudes.ndim > 0 else 0.0
+        if signed and random.random() < 0.5:
+             magnitude *= -1  
+        out = _apply_op(img, op_name, magnitude, interpolation=self.interpolation, fill=self.fill)
+        return out
+    
+    def __repr__(self):
+        return f"TrivialAugmentWeighted(colour_ops={self.colour_ops}, colour_prob={self.colour_prob}, maximum_strength={self.maximum_strength})"
 
 IMAGENET_MEAN_STD = {'mean': [0.485, 0.456, 0.406],
                      'std': [0.229, 0.224, 0.225]}
@@ -134,6 +169,8 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             # RQ2: RandAugment without its colour/histogram ops
             'randaugment_no_colour': RandAugmentDropOps(drop_ops=["Color", "Equalize", "Solarize", "Posterize"],
                                                         num_ops=3, interpolation=T.InterpolationMode.BILINEAR),
+            'trivialaugment_weighted': TrivialAugmentWeighted(colour_ops=["Color", "Equalize", "Solarize", "Posterize"], interpolation=T.InterpolationMode.BILINEAR),
+
             # TrivialAugment (Mueller & Hutter, ICCV 2021): one random op per image, random magnitude, no tuning
             'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
            # AugMix (Hendrycks et al., ICLR 2020): 3 chains of 1-3 random ops (severity 3), mixed with random weights and

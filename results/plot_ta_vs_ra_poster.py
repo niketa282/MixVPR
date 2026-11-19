@@ -25,6 +25,7 @@ WEA = ['svox_overcast', 'svox_rain', 'svox_snow', 'svox_sun']
 GROUPS = [('Weather', WEA), ('General', GEN), ('Nordland', ['nordland']), ('SVOX night', ['svox_night']),
           ('Tokyo night', ['tokyo247_night'])]
 POL = [('randaugment', 'RandAugment', '#2a78d6'), ('trivialaugment', 'TrivialAugment', '#eb6834')]
+TAB = ('trivialaugment_bounded', 'TrivialAugmentBounded', '#c2185b')   # added to the training figure with --tab
 TEXT, TEXT2, GRID, MUTED, ALERT = '#1f1f1e', '#5f5e58', '#e4e3dd', '#9b9a94', '#c0392b'
 COLOUR = {'Nordland': ALERT, 'SVOX night': TEXT, 'Tokyo night': '#6250d6'}
 FS = 18
@@ -60,7 +61,9 @@ def val_curve(inp, cond):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--input', choices=['rgb', 'gray'], default='rgb')
-    inp = ap.parse_args().input
+    ap.add_argument('--tab', action='store_true', help='training figure only, with TrivialAugmentBounded added')
+    args = ap.parse_args()
+    inp = args.input
     suffix = '' if inp == 'rgb' else '_gray'
     # Tokyo day/sunset/night split results live in their own files
     d = pd.concat([pd.read_csv(f'results/seed{s}/test_results{suffix}.csv') for s in SEEDS] +
@@ -86,18 +89,23 @@ def main():
 
     # ---- figure 1: training
     fig, a1 = plt.subplots(figsize=(7.2, 5.6))
-    for cond, name, col in POL:
+    pols = POL + [TAB] if args.tab else POL
+    for cond, name, col in pols:
         h, v = val_curve(inp, cond)
         a1.plot(h, v, color=col, linewidth=3, label=name)
         a1.plot(h[-1], v[-1], 'o', color=col, markersize=9)
-        a1.annotate(f'{h[-1]:.1f} h', (h[-1], v[-1]), xytext=(0, -26), textcoords='offset points', ha='center',
+        # TA and TAB end at almost the same time: put the TAB label above its dot, the others below
+        dy = 16 if cond == TAB[0] else -26
+        a1.annotate(f'{h[-1]:.1f} h', (h[-1], v[-1]), xytext=(0, dy), textcoords='offset points', ha='center',
                     fontsize=FS, color=col, fontweight='bold')
     a1.set_ylim(86, 94.5)
     a1.set_xlabel('training time (GPU hours)', color=TEXT2)
     a1.set_ylabel('validation R@1 (%)', color=TEXT2)
     a1.legend(frameon=False, loc='lower right', fontsize=FS - 1, bbox_to_anchor=(1.0, 0.12))
     style(a1)
-    save(fig, f'results/figures/ta_vs_ra_training{suffix}')
+    save(fig, f'results/figures/tab_training{suffix}' if args.tab else f'results/figures/ta_vs_ra_training{suffix}')
+    if args.tab:
+        return
 
     # ---- figure 2: testing slope chart (original style)
     fig, a2 = plt.subplots(figsize=(8.4, 6.2))

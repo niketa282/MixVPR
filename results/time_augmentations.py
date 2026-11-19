@@ -16,7 +16,7 @@ from torchvision import transforms as T
 
 # the script lives in results/, but dataloaders/ is in the repo root: add the root to the import search path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from dataloaders.GSVCitiesDataloader import IMAGENET_MEAN_STD, TrivialAugmentBounded
+from dataloaders.GSVCitiesDataloader import IMAGENET_MEAN_STD, TrivialAugmentBounded, TrivialAugmentWeighted
 
 N = 3000          # number of images timed per policy
 SEED = 190223     # same seed as the main experiments
@@ -39,6 +39,8 @@ POLICIES = {
             'trivialaugment': T.TrivialAugmentWide(interpolation=T.InterpolationMode.BILINEAR),
             'trivialaugment_bounded_2op': T.RandomChoice([T.RandAugment(num_ops=2, magnitude=m, interpolation=T.InterpolationMode.BILINEAR) for m in range(0, 19)]),
             'trivialaugment_bounded': TrivialAugmentBounded(maximum_strength=18),
+            'trivialaugment_weighted': TrivialAugmentWeighted(colour_ops=["Color", "Equalize", "Solarize", "Posterize"], interpolation=T.InterpolationMode.BILINEAR),
+
 }
 
 POST = T.Compose([T.ToTensor(), T.Normalize(IMAGENET_MEAN_STD['mean'], IMAGENET_MEAN_STD['std'])])

@@ -8,3 +8,4 @@ results/**
 !results/**/
 !results/**/*.py
 !results/**/README.md
+scratch_*
