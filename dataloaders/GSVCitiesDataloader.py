@@ -57,7 +57,7 @@ class RandAugmentDropOps(T.RandAugment):
         return ops
 
     def __repr__(self):
-        return f"RandAugmentDropOps(drop_ops={self.drop_ops})"
+        return f"RandAugmentDropOps(drop_ops={self.drop_ops}, num_ops={self.num_ops})"
 
 class TrivialAugmentWeighted(T.RandAugment):
     """1 operation class with colour operations applied more often"""
@@ -168,6 +168,9 @@ class GSVCitiesDataModule(pl.LightningDataModule):
             'randaugment_1op': T.RandAugment(num_ops=1, interpolation=T.InterpolationMode.BILINEAR),
             # RQ2: RandAugment without its colour/histogram ops
             'randaugment_no_colour': RandAugmentDropOps(drop_ops=["Color", "Equalize", "Solarize", "Posterize"],
+                                                        num_ops=3, interpolation=T.InterpolationMode.BILINEAR),
+            # RQ2: drop the tone ops only (Color does nothing in gray)
+            'randaugment_no_tone': RandAugmentDropOps(drop_ops=["Equalize", "Solarize", "Posterize"],
                                                         num_ops=3, interpolation=T.InterpolationMode.BILINEAR),
             'trivialaugment_weighted': TrivialAugmentWeighted(colour_ops=["Color", "Equalize", "Solarize", "Posterize"], interpolation=T.InterpolationMode.BILINEAR),
 
